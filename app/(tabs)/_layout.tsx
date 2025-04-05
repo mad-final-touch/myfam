@@ -7,7 +7,7 @@ import type { ParamListBase, RouteProp } from '@react-navigation/native';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 
 import Header from '../../components/Header.js';
-import ToggleButton from '../../components/ToggleButton.js';
+import ToggleButton from '../../components/ToggleButton';
 import Menu from '../../components/Menu.js';
 
 type TabParamList = {
@@ -23,30 +23,17 @@ type TabName = typeof TAB_NAMES[number];
 type TabScreenProps = BottomTabScreenProps<TabParamList>;
 
 export default function TabLayout() {
+  const [isIncognitoMode, setIsIncognitoMode] = useState(false);
   const [isStatusActive, setIsStatusActive] = useState(false);
-  const [isHealthTypeActive, setIsHealthTypeActive] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [currentTab, setCurrentTab] = useState<TabName>('index');
+
+  const shouldShowIncognitoToggle = currentTab === 'health' || currentTab === 'feed';
+  const shouldShowStatusToggle = currentTab === 'index' || currentTab === 'calls';
 
   const handleAddFamily = () => {
     // TODO: Implement add family navigation
     console.log('Add family pressed');
-  };
-
-  const getToggleButtonProps = () => {
-    if (currentTab === 'index' || currentTab === 'calls') {
-      return {
-        isActive: isStatusActive,
-        onToggle: () => setIsStatusActive(!isStatusActive),
-        type: 'status',
-      };
-    } else {
-      return {
-        isActive: isHealthTypeActive,
-        onToggle: () => setIsHealthTypeActive(!isHealthTypeActive),
-        type: 'health',
-      };
-    }
   };
 
   return (
@@ -127,7 +114,20 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <ToggleButton {...getToggleButtonProps()} />
+      {shouldShowIncognitoToggle && (
+        <ToggleButton
+          isActive={isIncognitoMode}
+          onToggle={() => setIsIncognitoMode(!isIncognitoMode)}
+          mode="incognito"
+        />
+      )}
+      {shouldShowStatusToggle && (
+        <ToggleButton
+          isActive={isStatusActive}
+          onToggle={() => setIsStatusActive(!isStatusActive)}
+          mode="status"
+        />
+      )}
       <Menu
         visible={isMenuVisible}
         onClose={() => setIsMenuVisible(false)}
