@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList, Image } from 'react-native';
+import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from '../../components/SearchBar';
 import { FeedItem as FeedItemType, dummyFeedData } from '../../data/feed';
@@ -28,17 +28,17 @@ const FeedItem: React.FC<{ item: FeedItemType }> = ({ item }) => {
         <Image source={{ uri: item.image }} style={styles.postImage} />
       )}
       <View style={styles.feedFooter}>
-        <View style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton}>
           <Ionicons name="heart-outline" size={20} color="#666" />
           <Text style={styles.actionText}>{item.likes}</Text>
-        </View>
-        <View style={styles.actionButton}>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}>
           <Ionicons name="chatbubble-outline" size={20} color="#666" />
           <Text style={styles.actionText}>{item.comments}</Text>
-        </View>
-        <View style={styles.actionButton}>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}>
           <Ionicons name="share-social-outline" size={20} color="#666" />
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -67,7 +67,7 @@ export default function FeedScreen() {
         data={filteredData}
         renderItem={({ item }) => <FeedItem item={item} />}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -78,22 +78,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  listContainer: {
-    paddingVertical: 8,
+  listContent: {
+    padding: 16,
   },
   feedItem: {
-    backgroundColor: '#fff',
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   feedHeader: {
     flexDirection: 'row',
@@ -101,17 +98,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   avatarContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#128C7E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 18,
+    color: 'white',
+    fontSize: 20,
     fontWeight: 'bold',
   },
   authorInfo: {
@@ -120,24 +117,26 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#333',
   },
   postTime: {
     fontSize: 12,
-    color: '#888',
+    color: '#666',
+    marginTop: 2,
   },
   typeIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#f0f0f0',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#333',
+    lineHeight: 20,
     marginBottom: 12,
-    lineHeight: 22,
   },
   postImage: {
     width: '100%',

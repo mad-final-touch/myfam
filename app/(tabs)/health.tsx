@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList } from 'react-native';
+import { StyleSheet, View, Text, FlatList, SectionList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from '../../components/SearchBar';
 import { HealthItem as HealthItemType, dummyHealthData } from '../../data/health';
@@ -50,6 +50,12 @@ const HealthItem: React.FC<{ item: HealthItemType }> = ({ item }) => {
   );
 };
 
+const renderSectionHeader = ({ section: { title } }: { section: { title: string } }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
+
 export default function HealthScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -63,6 +69,16 @@ export default function HealthScreen() {
     );
   }, [searchQuery]);
 
+  const sections = useMemo(() => {
+    const physicalHealth = filteredData.filter(item => item.category === 'physical');
+    const emotionalHealth = filteredData.filter(item => item.category === 'emotional');
+
+    return [
+      { title: 'Physical Health', data: physicalHealth },
+      { title: 'Emotional Health', data: emotionalHealth },
+    ];
+  }, [filteredData]);
+
   return (
     <View style={styles.container}>
       <SearchBar
@@ -70,11 +86,13 @@ export default function HealthScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
-      <FlatList
-        data={filteredData}
+      <SectionList
+        sections={sections}
         renderItem={({ item }) => <HealthItem item={item} />}
+        renderSectionHeader={renderSectionHeader}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        stickySectionHeadersEnabled={true}
       />
     </View>
   );
@@ -85,95 +103,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  scrollView: {
-    flex: 1,
+  listContent: {
     padding: 16,
   },
-  card: {
+  sectionHeader: {
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  healthItem: {
+    flexDirection: 'row',
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 8,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  initial: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  headerContent: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  status: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  conditionRow: {
-    marginBottom: 12,
-  },
-  condition: {
-    fontSize: 15,
-    color: '#666',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 12,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  checkItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  icon: {
-    marginRight: 4,
-  },
-  checkText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  healthItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
   avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#128C7E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -192,17 +151,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
+  name: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  status: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  condition: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
   metricsContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
+    flexWrap: 'wrap',
+    marginBottom: 8,
   },
   metricItem: {
+    flexDirection: 'row',
     marginRight: 8,
+    marginBottom: 4,
   },
   metricLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
+    marginRight: 4,
   },
   metricValue: {
     fontSize: 14,
@@ -213,7 +190,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  listContent: {
-    padding: 16,
+  checkText: {
+    fontSize: 12,
+    color: '#666',
   },
 }); 
