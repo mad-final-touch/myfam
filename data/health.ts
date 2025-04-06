@@ -1,12 +1,13 @@
+import { FamilyMember } from './family';
+
 export interface HealthItem {
   id: string;
-  name: string;
-  avatar: string;
+  memberId: string;
   condition: string;
   category: 'physical' | 'emotional';
   status: 'Normal' | 'Under Control' | 'Stable';
-  lastCheck: string;
-  nextCheck: string;
+  lastCheck?: string;
+  nextCheck?: string;
   metrics: {
     bloodPressure?: string;
     bloodSugar?: string;
@@ -22,8 +23,7 @@ export interface HealthItem {
 export const dummyHealthData: HealthItem[] = [
   {
     id: '1',
-    name: 'Mom',
-    avatar: 'M',
+    memberId: '1',
     condition: 'Hypertension',
     category: 'physical',
     status: 'Normal',
@@ -36,8 +36,7 @@ export const dummyHealthData: HealthItem[] = [
   },
   {
     id: '2',
-    name: 'Dad',
-    avatar: 'D',
+    memberId: '2',
     condition: 'Type 2 Diabetes',
     category: 'physical',
     status: 'Under Control',
@@ -50,8 +49,7 @@ export const dummyHealthData: HealthItem[] = [
   },
   {
     id: '3',
-    name: 'Sister',
-    avatar: 'S',
+    memberId: '3',
     condition: 'Asthma',
     category: 'physical',
     status: 'Stable',
@@ -64,8 +62,7 @@ export const dummyHealthData: HealthItem[] = [
   },
   {
     id: '4',
-    name: 'Mom',
-    avatar: 'M',
+    memberId: '1',
     condition: 'Anxiety',
     category: 'emotional',
     status: 'Under Control',
@@ -79,13 +76,11 @@ export const dummyHealthData: HealthItem[] = [
   },
   {
     id: '5',
-    name: 'Dad',
-    avatar: 'D',
+    memberId: '2',
     condition: 'Stress Management',
     category: 'emotional',
     status: 'Normal',
     lastCheck: '2024-03-12',
-    nextCheck: '2024-04-12',
     metrics: {
       mood: 'Stable',
       stress: 'Moderate',
@@ -94,17 +89,14 @@ export const dummyHealthData: HealthItem[] = [
   },
   {
     id: '6',
-    name: 'Sister',
-    avatar: 'S',
-    condition: 'Depression',
+    memberId: '3',
+    condition: 'Sleep Quality',
     category: 'emotional',
     status: 'Stable',
     lastCheck: '2024-03-05',
-    nextCheck: '2024-04-05',
     metrics: {
-      mood: 'Improving',
-      anxiety: 'Low',
       sleep: '8 hours',
+      mood: 'Well-rested',
     },
   },
 ]; 

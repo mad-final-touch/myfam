@@ -3,58 +3,72 @@ import { StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from '../../components/SearchBar';
 import { CallItem as CallItemType, dummyCallsData } from '../../data/calls';
+import { FamilyMember, getFamilyMemberById } from '../../data/family';
+
+// Helper function to format date as relative time
+const getRelativeTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffMinutes = Math.floor(diffTime / (1000 * 60));
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+  } else {
+    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+  }
+};
 
 const CallItem: React.FC<{ item: CallItemType }> = ({ item }) => {
-  const getCallIcon = () => {
-    const iconProps = {
-      size: 16,
-      style: styles.callTypeIcon,
-    };
+  const familyMember = getFamilyMemberById(item.memberId);
+  
+  if (!familyMember) return null;
 
-    switch (item.type) {
+  const getCallIcon = (type: CallItemType['type']) => {
+    switch (type) {
       case 'incoming':
-        return <Ionicons name="arrow-down-circle" color="#4CAF50" {...iconProps} />;
+        return 'arrow-down-circle';
       case 'outgoing':
-        return <Ionicons name="arrow-up-circle" color="#2196F3" {...iconProps} />;
+        return 'arrow-up-circle';
       case 'missed':
-        return <Ionicons name="close-circle" color="#F44336" {...iconProps} />;
+        return 'close-circle';
+      default:
+        return 'call';
     }
   };
 
   return (
-    <TouchableOpacity style={styles.callItem}>
-      <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>{item.avatar}</Text>
+    <View style={styles.callItem}>
+      <View style={[styles.avatarContainer, { backgroundColor: familyMember.color }]}>
+        <Text style={styles.avatarText}>{familyMember.avatar}</Text>
       </View>
-      <View style={styles.callContent}>
-        <View style={styles.callHeader}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
+      <View style={styles.callInfo}>
+        <Text style={styles.name}>{familyMember.name}</Text>
         <View style={styles.callDetails}>
-          {getCallIcon()}
-          <Text style={[
-            styles.callInfo,
-            item.type === 'missed' && styles.missedCall
-          ]}>
-            {item.type === 'missed' ? 'Missed Call' : item.duration}
-          </Text>
-          {item.video && (
-            <Ionicons name="videocam" size={16} color="#666" style={styles.videoIcon} />
+          <Ionicons
+            name={getCallIcon(item.type)}
+            size={16}
+            color={item.type === 'missed' ? '#FF3B30' : '#666'}
+          />
+          <Text style={styles.time}>{getRelativeTime(item.time)}</Text>
+          {item.duration !== '0:00' && (
+            <Text style={styles.duration}> • {item.duration}</Text>
           )}
         </View>
       </View>
-      <View style={styles.callActions}>
+      <View style={styles.actions}>
         <TouchableOpacity style={styles.actionButton}>
           <Ionicons name="call" size={24} color="#128C7E" />
         </TouchableOpacity>
-        {item.video && (
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="videocam" size={24} color="#128C7E" />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity style={styles.actionButton}>
+          <Ionicons name="videocam" size={24} color="#128C7E" />
+        </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -63,11 +77,13 @@ export default function CallsScreen() {
 
   const filteredData = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return dummyCallsData.filter(
-      item =>
-        item.name.toLowerCase().includes(query) ||
+    return dummyCallsData.filter(item => {
+      const familyMember = getFamilyMemberById(item.memberId);
+      return familyMember && (
+        familyMember.name.toLowerCase().includes(query) ||
         item.type.toLowerCase().includes(query)
-    );
+      );
+    });
   }, [searchQuery]);
 
   return (
@@ -90,17 +106,18 @@ export default function CallsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   listContent: {
     padding: 16,
   },
   callItem: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
+    marginBottom: 16,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -108,61 +125,48 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#128C7E',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: 'white',
-    fontSize: 20,
+    color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
   },
-  callContent: {
+  callInfo: {
     flex: 1,
-  },
-  callHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
   },
   name: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  time: {
-    fontSize: 14,
-    color: '#666',
+    color: '#333',
+    marginBottom: 4,
   },
   callDetails: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  callTypeIcon: {
-    marginRight: 6,
+  time: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 4,
   },
-  callInfo: {
+  duration: {
     fontSize: 14,
     color: '#666',
   },
-  missedCall: {
-    color: '#F44336',
-  },
-  videoIcon: {
-    marginLeft: 8,
-  },
-  callActions: {
+  actions: {
     flexDirection: 'row',
   },
   actionButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,

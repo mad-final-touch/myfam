@@ -1,38 +1,53 @@
+import { FamilyMember } from './family';
+
 export interface CallItem {
   id: string;
-  name: string;
-  avatar: string;
+  memberId: string;
   time: string;
   type: 'incoming' | 'outgoing' | 'missed';
-  duration?: string;
+  duration: string;
   video: boolean;
 }
 
 export const dummyCallsData: CallItem[] = [
   {
     id: '1',
-    name: 'Mom',
-    avatar: 'M',
-    time: '10 min ago',
+    memberId: '1',
+    time: '2024-03-20T15:30:00Z',
     type: 'incoming',
     duration: '5:23',
-    video: false,
+    video: false
   },
   {
     id: '2',
-    name: 'Dad',
-    avatar: 'D',
-    time: '2 hours ago',
+    memberId: '2',
+    time: '2024-03-20T14:15:00Z',
     type: 'outgoing',
-    duration: '12:05',
-    video: true,
+    duration: '12:45',
+    video: true
   },
   {
     id: '3',
-    name: 'Sister',
-    avatar: 'S',
-    time: 'Yesterday',
+    memberId: '3',
+    time: '2024-03-19T10:00:00Z',
     type: 'missed',
-    video: false,
+    duration: '0:00',
+    video: false
   },
+  {
+    id: '4',
+    memberId: '4',
+    time: '2024-03-19T09:30:00Z',
+    type: 'incoming',
+    duration: '8:15',
+    video: true
+  },
+  {
+    id: '5',
+    memberId: '1',
+    time: '2024-03-18T16:45:00Z',
+    type: 'outgoing',
+    duration: '3:20',
+    video: false
+  }
 ]; 

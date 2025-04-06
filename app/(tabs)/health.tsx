@@ -3,8 +3,41 @@ import { StyleSheet, View, Text, FlatList, SectionList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from '../../components/SearchBar';
 import { HealthItem as HealthItemType, dummyHealthData } from '../../data/health';
+import { FamilyMember, getFamilyMemberById } from '../../data/family';
+
+// Helper function to format date as relative time
+const getRelativeTime = (dateString: string, isNextCheck: boolean = false) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (isNextCheck) {
+    if (diffDays < 7) return `in ${diffDays} days`;
+    if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `in ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+    }
+    const months = Math.floor(diffDays / 30);
+    return `in ${months} ${months === 1 ? 'month' : 'months'}`;
+  } else {
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+    }
+    const months = Math.floor(diffDays / 30);
+    return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+  }
+};
 
 const HealthItem: React.FC<{ item: HealthItemType }> = ({ item }) => {
+  const familyMember = getFamilyMemberById(item.memberId);
+  
+  if (!familyMember) return null;
+  
   const getStatusColor = (status: HealthItemType['status']) => {
     switch (status) {
       case 'Normal':
@@ -20,12 +53,12 @@ const HealthItem: React.FC<{ item: HealthItemType }> = ({ item }) => {
 
   return (
     <View style={styles.healthItem}>
-      <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>{item.avatar}</Text>
+      <View style={[styles.avatarContainer, { backgroundColor: familyMember.color }]}>
+        <Text style={styles.avatarText}>{familyMember.avatar}</Text>
       </View>
       <View style={styles.healthContent}>
         <View style={styles.healthHeader}>
-          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.name}>{familyMember.name}</Text>
           <Text style={[styles.status, { color: getStatusColor(item.status) }]}>
             {item.status}
           </Text>
@@ -41,10 +74,26 @@ const HealthItem: React.FC<{ item: HealthItemType }> = ({ item }) => {
             </View>
           ))}
         </View>
-        <View style={styles.checkInfo}>
-          <Text style={styles.checkText}>Last check: {item.lastCheck}</Text>
-          <Text style={styles.checkText}>Next check: {item.nextCheck}</Text>
-        </View>
+        {(item.lastCheck || item.nextCheck) && (
+          <View style={styles.checkInfo}>
+            {item.lastCheck && (
+              <View style={styles.checkItem}>
+                <Ionicons name="time-outline" size={16} color="#666" style={styles.checkIcon} />
+                <Text style={styles.checkText} numberOfLines={1}>
+                  {getRelativeTime(item.lastCheck)}
+                </Text>
+              </View>
+            )}
+            {item.nextCheck && (
+              <View style={styles.checkItem}>
+                <Ionicons name="calendar-outline" size={16} color="#666" style={styles.checkIcon} />
+                <Text style={styles.checkText} numberOfLines={1}>
+                  {getRelativeTime(item.nextCheck, true)}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -62,10 +111,14 @@ export default function HealthScreen() {
   const filteredData = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return dummyHealthData.filter(
-      item =>
-        item.name.toLowerCase().includes(query) ||
-        item.condition.toLowerCase().includes(query) ||
-        item.status.toLowerCase().includes(query)
+      item => {
+        const familyMember = getFamilyMemberById(item.memberId);
+        return familyMember && (
+          familyMember.name.toLowerCase().includes(query) ||
+          item.condition.toLowerCase().includes(query) ||
+          item.status.toLowerCase().includes(query)
+        );
+      }
     );
   }, [searchQuery]);
 
@@ -129,17 +182,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#128C7E',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: 'white',
-    fontSize: 20,
+    color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
   },
   healthContent: {
@@ -190,8 +242,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  checkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  checkIcon: {
+    marginRight: 4,
+  },
   checkText: {
     fontSize: 12,
     color: '#666',
+    flex: 1,
   },
 }); 
