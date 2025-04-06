@@ -1,70 +1,11 @@
+import React, { useState, useMemo } from 'react';
 import { StyleSheet, View, Text, FlatList, Image } from 'react-native';
-import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import SearchBar from '../../components/SearchBar';
+import { FeedItem as FeedItemType, dummyFeedData } from '../../data/feed';
 
-// Dummy feed data
-const dummyFeedData = [
-  {
-    id: '1',
-    author: 'Mom',
-    avatar: 'M',
-    content: 'Just finished my daily walk. Feeling energized!',
-    type: 'physical',
-    likes: 5,
-    comments: 2,
-    time: '2 hours ago',
-    image: null,
-  },
-  {
-    id: '2',
-    author: 'Dad',
-    avatar: 'D',
-    content: 'Had a great therapy session today. Learning to manage stress better.',
-    type: 'emotional',
-    likes: 8,
-    comments: 3,
-    time: '5 hours ago',
-    image: null,
-  },
-  {
-    id: '3',
-    author: 'Sister',
-    avatar: 'S',
-    content: 'Completed my meditation session. Feeling calm and centered.',
-    type: 'emotional',
-    likes: 4,
-    comments: 1,
-    time: 'Yesterday',
-    image: null,
-  },
-  {
-    id: '4',
-    author: 'Brother',
-    avatar: 'B',
-    content: 'Just got my blood test results. Everything looks good!',
-    type: 'physical',
-    likes: 7,
-    comments: 4,
-    time: '2 days ago',
-    image: null,
-  },
-  {
-    id: '5',
-    author: 'Grandma',
-    avatar: 'G',
-    content: 'Family dinner was wonderful. Good food and good company!',
-    type: 'emotional',
-    likes: 10,
-    comments: 5,
-    time: '3 days ago',
-    image: null,
-  },
-];
-
-export default function FeedScreen() {
-  const [feedData] = useState(dummyFeedData);
-
-  const renderFeedItem = ({ item }) => (
+const FeedItem: React.FC<{ item: FeedItemType }> = ({ item }) => {
+  return (
     <View style={styles.feedItem}>
       <View style={styles.feedHeader}>
         <View style={styles.avatarContainer}>
@@ -101,13 +42,31 @@ export default function FeedScreen() {
       </View>
     </View>
   );
+};
+
+export default function FeedScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredData = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return dummyFeedData.filter(
+      item =>
+        item.author.toLowerCase().includes(query) ||
+        item.content.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   return (
     <View style={styles.container}>
+      <SearchBar
+        placeholder="Search posts..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
       <FlatList
-        data={feedData}
-        renderItem={renderFeedItem}
-        keyExtractor={(item) => item.id}
+        data={filteredData}
+        renderItem={({ item }) => <FeedItem item={item} />}
+        keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
       />
     </View>

@@ -1,22 +1,14 @@
+import React, { useState, useMemo } from 'react';
 import { StyleSheet, View, Text, FlatList } from 'react-native';
-import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import SearchBar from '../../components/SearchBar';
+import { MessageItem as MessageItemType, dummyMessageData } from '../../data/messages';
 
-// Dummy data for messages
-const dummyMessages = [
-  { id: '1', name: 'Mom', lastMessage: 'How are you feeling today?', time: '10:30 AM', unread: 2 },
-  { id: '2', name: 'Dad', lastMessage: 'Don\'t forget your medicine', time: '9:15 AM', unread: 0 },
-  { id: '3', name: 'Sister', lastMessage: 'I\'m feeling better now', time: 'Yesterday', unread: 0 },
-  { id: '4', name: 'Brother', lastMessage: 'Let\'s talk about your health', time: 'Yesterday', unread: 1 },
-  { id: '5', name: 'Grandma', lastMessage: 'I\'m praying for your recovery', time: '2 days ago', unread: 0 },
-];
-
-export default function MessagesScreen() {
-  const [messages] = useState(dummyMessages);
-
-  const renderItem = ({ item }) => (
+const MessageItem: React.FC<{ item: MessageItemType }> = ({ item }) => {
+  return (
     <View style={styles.messageItem}>
       <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+        <Text style={styles.avatarText}>{item.avatar}</Text>
       </View>
       <View style={styles.messageContent}>
         <View style={styles.messageHeader}>
@@ -36,14 +28,32 @@ export default function MessagesScreen() {
       </View>
     </View>
   );
+};
+
+export default function MessagesScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredData = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return dummyMessageData.filter(
+      item =>
+        item.name.toLowerCase().includes(query) ||
+        item.lastMessage.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   return (
     <View style={styles.container}>
+      <SearchBar
+        placeholder="Search messages..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
       <FlatList
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        data={filteredData}
+        renderItem={({ item }) => <MessageItem item={item} />}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -54,15 +64,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  listContainer: {
-    paddingVertical: 8,
+  listContent: {
+    padding: 16,
   },
   messageItem: {
     flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 12,
     padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#fff',
+    marginBottom: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   avatarContainer: {
     width: 50,
@@ -74,25 +89,28 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
   },
   messageContent: {
     flex: 1,
+    justifyContent: 'center',
   },
   messageHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
   name: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#333',
   },
   time: {
     fontSize: 12,
-    color: '#888',
+    color: '#666',
   },
   messageFooter: {
     flexDirection: 'row',
@@ -100,21 +118,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lastMessage: {
+    flex: 1,
     fontSize: 14,
     color: '#666',
-    flex: 1,
     marginRight: 8,
   },
   unreadBadge: {
     backgroundColor: '#128C7E',
-    borderRadius: 12,
-    minWidth: 24,
-    height: 24,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 6,
   },
   unreadText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
   },

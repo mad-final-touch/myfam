@@ -1,79 +1,47 @@
+import React, { useState, useMemo } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import SearchBar from '../../components/SearchBar';
+import { CallItem as CallItemType, dummyCallsData } from '../../data/calls';
 
-// Dummy calls data
-const dummyCallsData = [
-  {
-    id: '1',
-    name: 'Mom',
-    avatar: 'M',
-    time: 'Today, 10:30 AM',
-    type: 'incoming',
-    duration: '5:23',
-    video: false,
-  },
-  {
-    id: '2',
-    name: 'Dad',
-    avatar: 'D',
-    time: 'Today, 9:15 AM',
-    type: 'outgoing',
-    duration: '2:45',
-    video: true,
-  },
-  {
-    id: '3',
-    name: 'Sister',
-    avatar: 'S',
-    time: 'Yesterday, 3:20 PM',
-    type: 'missed',
-    duration: null,
-    video: false,
-  },
-  {
-    id: '4',
-    name: 'Brother',
-    avatar: 'B',
-    time: 'Yesterday, 11:05 AM',
-    type: 'incoming',
-    duration: '8:12',
-    video: true,
-  },
-  {
-    id: '5',
-    name: 'Grandma',
-    avatar: 'G',
-    time: '2 days ago, 4:30 PM',
-    type: 'outgoing',
-    duration: '3:45',
-    video: false,
-  },
-];
+const CallItem: React.FC<{ item: CallItemType }> = ({ item }) => {
+  const getCallIcon = () => {
+    const iconProps = {
+      size: 16,
+      style: styles.callTypeIcon,
+    };
 
-export default function CallsScreen() {
-  const [callsData] = useState(dummyCallsData);
-
-  const getCallIcon = (type, video) => {
-    if (type === 'missed') {
-      return <Ionicons name="call" size={24} color="#F44336" />;
-    } else if (type === 'incoming') {
-      return <Ionicons name="call-received" size={24} color="#4CAF50" />;
-    } else if (type === 'outgoing') {
-      return <Ionicons name="call-made" size={24} color="#4CAF50" />;
+    switch (item.type) {
+      case 'incoming':
+        return <Ionicons name="arrow-down-circle" color="#4CAF50" {...iconProps} />;
+      case 'outgoing':
+        return <Ionicons name="arrow-up-circle" color="#2196F3" {...iconProps} />;
+      case 'missed':
+        return <Ionicons name="close-circle" color="#F44336" {...iconProps} />;
     }
   };
 
-  const renderCallItem = ({ item }) => (
+  return (
     <TouchableOpacity style={styles.callItem}>
       <View style={styles.avatarContainer}>
         <Text style={styles.avatarText}>{item.avatar}</Text>
       </View>
-      <View style={styles.callInfo}>
-        <Text style={styles.name}>{item.name}</Text>
-        <View style={styles.callDetails}>
-          {getCallIcon(item.type, item.video)}
+      <View style={styles.callContent}>
+        <View style={styles.callHeader}>
+          <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.time}>{item.time}</Text>
+        </View>
+        <View style={styles.callDetails}>
+          {getCallIcon()}
+          <Text style={[
+            styles.callInfo,
+            item.type === 'missed' && styles.missedCall
+          ]}>
+            {item.type === 'missed' ? 'Missed Call' : item.duration}
+          </Text>
+          {item.video && (
+            <Ionicons name="videocam" size={16} color="#666" style={styles.videoIcon} />
+          )}
         </View>
       </View>
       <View style={styles.callActions}>
@@ -88,14 +56,32 @@ export default function CallsScreen() {
       </View>
     </TouchableOpacity>
   );
+};
+
+export default function CallsScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredData = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return dummyCallsData.filter(
+      item =>
+        item.name.toLowerCase().includes(query) ||
+        item.type.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   return (
     <View style={styles.container}>
+      <SearchBar
+        placeholder="Search calls..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
       <FlatList
-        data={callsData}
-        renderItem={renderCallItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        data={filteredData}
+        renderItem={({ item }) => <CallItem item={item} />}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -106,16 +92,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  listContainer: {
-    paddingVertical: 8,
+  listContent: {
+    padding: 16,
   },
   callItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   avatarContainer: {
     width: 50,
@@ -124,28 +114,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#128C7E',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
   },
-  callInfo: {
+  callContent: {
     flex: 1,
+  },
+  callHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   name: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+  },
+  time: {
+    fontSize: 14,
+    color: '#666',
   },
   callDetails: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  time: {
+  callTypeIcon: {
+    marginRight: 6,
+  },
+  callInfo: {
     fontSize: 14,
-    color: '#888',
+    color: '#666',
+  },
+  missedCall: {
+    color: '#F44336',
+  },
+  videoIcon: {
     marginLeft: 8,
   },
   callActions: {
